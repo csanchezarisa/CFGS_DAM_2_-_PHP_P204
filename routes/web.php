@@ -16,6 +16,10 @@ use App\Http\Controllers\Controlador;
 
 Route::get('/', [Controlador::class, 'landingPage']);
 
-Route::get('/login', [Controlador::class, 'login']);
+Route::get('/login', [Controlador::class, 'loginPage']);
+
+Route::post('/login-user', [Controlador::class, 'loginUser']);
+
+Route::post('/signup-user', [Controlador::class, 'signUpUser']);
 
 Route::get('/logout', [Controlador::class, 'logout']);
