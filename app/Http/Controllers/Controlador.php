@@ -13,4 +13,16 @@ class Controlador extends Controller
         return \view('landingpage', ['login' => $this->login]);
     }
 
+    public function login() {
+        $this->login = true;
+
+        return \view('landingpage', ['login' => $this->login]);
+    }
+
+    public function logout() {
+        $this->login = false;
+
+        return \view('landingpage', ['login' => $this->login]);
+    }
+
 }

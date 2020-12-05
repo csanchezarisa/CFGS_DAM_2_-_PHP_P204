@@ -24,7 +24,7 @@
                     </li>
 
                     <li class="nav-item @yield('activeLogin')" style="@yield('login')">
-                        <a class="nav-link" href="#">Iniciar sessió</a>
+                        <a class="nav-link" href="/login">Iniciar sessió</a>
                     </li>
 
                     <li class="nav-item @yield('activePersonalData')" style="@yield('logout')">
@@ -32,7 +32,7 @@
                     </li>
 
                     <li class="nav-item" style="@yield('logout')">
-                        <a class="nav-link" href="#">Tancar sessió</a>
+                        <a class="nav-link" href="/logout">Tancar sessió</a>
                     </li>
 
                 </ul>

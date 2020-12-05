@@ -16,10 +16,6 @@ use App\Http\Controllers\Controlador;
 
 Route::get('/', [Controlador::class, 'landingPage']);
 
-Route::get('/user', function() {
-    return view('user');
-});
+Route::get('/login', [Controlador::class, 'login']);
 
-Route::get('/user/{nomUser}', function() {
-    return view('user');
-});
+Route::get('/logout', [Controlador::class, 'logout']);
