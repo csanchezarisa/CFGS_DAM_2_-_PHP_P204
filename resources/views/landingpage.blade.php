@@ -18,7 +18,7 @@
     @endsection
 
     @section('content')
-        <h1 style="text-align: center;">Has fet login!</h1>
+<h1 style="text-align: center;">{{$username}} has fet login!</h1>
         <h2 style="text-align: center;">Així m'agrada, gràcies a aquesta acció, un ximpancé ha sigut apadrinat</h2>
         <div class="container" style="text-align: center;">
             <img src="https://media1.tenor.com/images/03cb574d782243be49c07e5432eda668/tenor.gif?itemid=10879973" alt="Dancing chimpanzee">

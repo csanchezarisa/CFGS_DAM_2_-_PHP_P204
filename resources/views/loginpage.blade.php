@@ -15,6 +15,31 @@
 @endsection
 
 @section('content')
+
+    <!-- Si el back troba un error, mostrarà aquesta pàgina activant l'apartat següent amb una alerta-->
+    @if ($errorDadesIncorrectes)
+        <div class="row">
+            <div class="col-sm-12" style="text-align: center;">
+                <div class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <strong>Error!</strong> Les dades introduides no son correctes
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($errorUsuariIncorrecte)
+        <div class="row">
+            <div class="col-sm-12" style="text-align: center;">
+                <div class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <strong>Error!</strong> Usuari incorrecte
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Formulari -->
     <div class="row" style="padding-top: 25px; padding-bottom: 25px;">
         <div class="col-sm-6" style="text-align: center;">
             <h2>Iniciar sessió</h2>
@@ -190,29 +215,4 @@
             return correcte;
         }
     </script>
-    
-    <!-- Si el back troba un error, mostrarà aquesta pàgina activant l'apartat següent amb una alerta-->
-    @if ($errorDadesIncorrectes)
-        <div class="row">
-            <div class="col-sm-12" style="text-align: center;">
-                <div class="alert alert-danger alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    <strong>Error!</strong> Les dades introduides no son correctes
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if ($errorUsuariIncorrecte)
-        <div class="row">
-            <div class="col-sm-12" style="text-align: center;">
-                <div class="alert alert-danger alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    <strong>Error!</strong> Usuari incorrecte
-                </div>
-            </div>
-        </div>
-    @endif
-
-    
 @endsection
