@@ -18,6 +18,8 @@ Route::get('/', [Controlador::class, 'landingPage']);
 
 Route::get('/login', [Controlador::class, 'loginPage']);
 
+Route::get('/usuari', [Controlador::class, 'mostrarDadesUsuari']);
+
 Route::post('/login-user', [Controlador::class, 'loginUser']);
 
 Route::post('/signup-user', [Controlador::class, 'signUpUser']);

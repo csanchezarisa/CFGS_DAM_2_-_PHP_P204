@@ -88,7 +88,7 @@
                     <select class="form-control" name="estat-civil" id="estat-civil-signup">
                         <option>Solter/a</option>
                         <option>Casat/ada</option>
-                        <option>Unió lliure o de fet</option>
+                        <option value="Unió_lliure">Unió lliure o de fet</option>
                         <option>Separat/ada</option>
                         <option>Divorciat/ada</option>
                         <option>Vidu/a</option>

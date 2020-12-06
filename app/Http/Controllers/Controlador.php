@@ -133,7 +133,7 @@ class Controlador extends Controller
         $json = [
             'nom' => $nom,
             'cognoms' => $cognoms,
-            'nif' => $nif,
+            'nif' => \strtoupper($nif),
             'estat-civil' => $estatCivil,
             'sexe' => $sexe,
             'username' => $username,
@@ -166,6 +166,23 @@ class Controlador extends Controller
         $_SESSION['login'] = true;
 
         return $this->landingPage();
+    }
+
+    public function mostrarDadesUsuari() {
+        // Comprova si hi ha alguna sessió iniciada, sino, la inicia
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
+        }
+
+        $nom = $_SESSION['nom'];
+        $cognoms = $_SESSION['cognoms'];
+        $nif = $_SESSION['nif'];
+        $estatCivil = $_SESSION['estat-civil'];
+        $sexe = $_SESSION['sexe'];
+        $username = $_SESSION['username'];
+
+
+        return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => false, 'errorUsuariIncorrecte' => false]);
     }
 
     // Tanca la sessió, eliminant totes les variables amb dades personals

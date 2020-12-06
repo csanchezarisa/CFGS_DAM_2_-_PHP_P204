@@ -28,7 +28,7 @@
                     </li>
 
                     <li class="nav-item @yield('activePersonalData')" style="@yield('logout')">
-                        <a class="nav-link" href="#">Dades personals</a>
+                        <a class="nav-link" href="/usuari">Dades personals</a>
                     </li>
 
                     <li class="nav-item" style="@yield('logout')">
