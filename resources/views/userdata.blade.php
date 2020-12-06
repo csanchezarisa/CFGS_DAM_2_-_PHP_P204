@@ -38,9 +38,21 @@
             </div>
         </div>
     @endif
+
+    @if ($actualitzacioCorrecte)
+        <div class="row">
+            <div class="col-sm-12" style="text-align: center;">
+                <div class="alert alert-success alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <strong>Èxit!</strong> Les dades s'han actualitzat correctament
+                </div>
+            </div>
+        </div>
+    @endif
+
     <h2 style="text-align: center">En aquest apartat podrás modificar la informació personal</h2>
 
-    <form action="" method="post" id="update-form" onchange="activarFormulari('update-form')">
+    <form action="/update-userdata" method="post" id="update-form" onchange="activarFormulari('update-form')">
         @csrf
         <div class="form-group">
             <label for="name">Nom:</label>
@@ -92,11 +104,45 @@
             <div class="invalid-feedback" id="invalid-password2">Introdueix una contrasenya</div>
         </div>
         <div style="text-align: right;">
+            <button class="btn btn-danger" id="btn-del-user" data-toggle="tooltip" data-placement="top" title="Eliminar usuari" onclick="mostrarAlerta()">
+                <i class="fas fa-user-minus"></i>
+            </button>
             <button type="submit" class="btn btn-dark" id="btn-userdata" disabled>
                 <i class="fas fa-user-edit"></i>
             </button>
         </div>
     </form>
+
+    <!-- Botó invisible que s'encarrega d'obrir el moal -->
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirmacio-eliminar-usuari" style="display: none;" id="btn-mostrar-modal">
+        Open modal
+    </button>
+    
+    <!-- Modal de confirmació de eliminació d'usuari -->
+    <div class="modal" id="confirmacio-eliminar-usuari">
+        <div class="modal-dialog">
+        <div class="modal-content">
+    
+            <!-- Modal Header -->
+            <div class="modal-header">
+            <h4 class="modal-title">Eliminar usuari</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+    
+            <!-- Modal body -->
+            <div class="modal-body">
+            Estas segur que vols eliminar l'usuari?
+            </div>
+    
+            <!-- Modal footer -->
+            <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger" onclick="eliminarUsuari()">Eliminar</button>
+            </div>
+    
+        </div>
+        </div>
+    </div>
     
     <script>
         // Selecciona les opcions per defecte en els desplegables de sexe i estat civil
@@ -188,6 +234,16 @@
 
 
             return correcte;
+        }
+
+        // Fa click en el botó invisible que obre el modal
+        function mostrarAlerta() {
+            document.getElementById('btn-mostrar-modal').click();
+        }
+
+        // Elimina l'usuari
+        function eliminarUsuari() {
+            window.location.href = "/del-user";
         }
     </script>
 @endsection

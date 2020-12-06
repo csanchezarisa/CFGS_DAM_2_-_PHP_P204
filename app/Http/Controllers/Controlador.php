@@ -141,14 +141,7 @@ class Controlador extends Controller
         ];
 
         // S'intenta crear el fitxer json amb les dades de l'usuari. Si ja existeix peta
-        try {
-            if (Storage::disk('local')->exists("$username.json")) {
-                throw new \Exception("Ja existeix l'usuari");
-            }
-
-            Storage::put("$username.json", \json_encode($json));
-        }
-        catch (\Exception $e) {
+        if (!$this->crearFitxer($username, false, $json)) {
             return \view('loginpage', ['errorDadesIncorrectes' => false, 'errorUsuariIncorrecte' => true]);
         }
 
@@ -168,12 +161,20 @@ class Controlador extends Controller
         return $this->landingPage();
     }
 
+    // Carrega la pàgina que mostra les dades de l'usuari
     public function mostrarDadesUsuari() {
         // Comprova si hi ha alguna sessió iniciada, sino, la inicia
         if (\session_status() !== PHP_SESSION_ACTIVE) {
             \session_start();
         }
 
+        // Si el login no es troba a true o no existeix, esborra les dades (per si de cas), i retorna la pàgina principal
+        if (!isset($_SESSION['login']) || !$_SESSION['login']) {
+            $this->logout();
+            return $this->landingPage();
+        }
+
+        // Recupera totes les dades de la sessió i les envia al front
         $nom = $_SESSION['nom'];
         $cognoms = $_SESSION['cognoms'];
         $nif = $_SESSION['nif'];
@@ -181,8 +182,170 @@ class Controlador extends Controller
         $sexe = $_SESSION['sexe'];
         $username = $_SESSION['username'];
 
+        return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => false, 'errorUsuariIncorrecte' => false, 'actualitzacioCorrecte' => false]);
+    }
 
-        return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => false, 'errorUsuariIncorrecte' => false]);
+    // Permet actualitzar les dades de l'usuari
+    public function actualitzarDades(Request $request) {
+        // Comprova si hi ha alguna sessió iniciada, sino, la inicia
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
+        }
+
+        // Si el login no es troba a true o no existeix, esborra les dades (per si de cas), i retorna la pàgina principal
+        if (!isset($_SESSION['login']) || !$_SESSION['login']) {
+            $this->logout();
+            return $this->landingPage();
+        }
+
+        $nom = $request['name'];
+        $cognoms = $request['surname'];
+        $nif = $request['nif'];
+        $estatCivil = $request['estat-civil'];
+        $sexe = $request['sexe'];
+        $username = $request['username'];
+        $contrasenya = $request['password'];
+        $contrasenya2 = $request['password2'];
+
+        // Comprova si alguns dels paràmetres passats per la request està buit. Si està buit, retorna la pàgina de les dades, amb la informació emmagatzemada a la sessió i mostrant un error
+        if (\strlen($nom) == 0 || \strlen($cognoms) == 0 || \strlen($nif) == 0 ||
+            \strlen($estatCivil) == 0 || \strlen($sexe) == 0 || \strlen($username) == 0 ||
+            \strlen($contrasenya) == 0 || \strlen($contrasenya2) == 0) {
+
+                $nom = $_SESSION['nom'];
+                $cognoms = $_SESSION['cognoms'];
+                $nif = $_SESSION['nif'];
+                $estatCivil = $_SESSION['estat-civil'];
+                $sexe = $_SESSION['sexe'];
+                $username = $_SESSION['username'];
+
+                return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => true, 'errorUsuariIncorrecte' => false, 'actualitzacioCorrecte' => false]);
+        }
+
+        // Comprova si el DNI es correcte. Si no ho es retorna la pàgina amb les dades de la sessió i amb el missatge d'error
+        if (!$this->nifCorrecte($nif)) {
+
+            $nom = $_SESSION['nom'];
+            $cognoms = $_SESSION['cognoms'];
+            $nif = $_SESSION['nif'];
+            $estatCivil = $_SESSION['estat-civil'];
+            $sexe = $_SESSION['sexe'];
+            $username = $_SESSION['username'];
+
+            return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => true, 'errorUsuariIncorrecte' => false, 'actualitzacioCorrecte' => false]);
+        }
+
+        // Es fa el hash de les contrasenyes
+        $contrasenya = \hash('sha256', $contrasenya);
+        $contrasenya2 = \hash('sha256', $contrasenya2);
+
+        // Comprova si les dues contrasenyes són iguals. Sino, retorna la pàgina amb les dades de la sessió i un missatge d'error
+        if ($contrasenya !== $contrasenya2) {
+
+            $nom = $_SESSION['nom'];
+            $cognoms = $_SESSION['cognoms'];
+            $nif = $_SESSION['nif'];
+            $estatCivil = $_SESSION['estat-civil'];
+            $sexe = $_SESSION['sexe'];
+            $username = $_SESSION['username'];
+
+            return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => true, 'errorUsuariIncorrecte' => false, 'actualitzacioCorrecte' => false]);
+        }
+
+        // Comprova si s'ha modificat el nom d'usuari. En cas positiu, s'haurà de canviar el nom del fitxer
+        if ($username !== $_SESSION['username']) {
+
+            $originalUsername = $_SESSION['username'];
+
+            // S'intenta canviar el nom del fitxer. Si hi ha algun problema retorna la pàgina amb les dades de la sessió mostrant un missatge d'error
+            if (!$this->canviarNomFitxer($originalUsername, $username)) {
+
+                $nom = $_SESSION['nom'];
+                $cognoms = $_SESSION['cognoms'];
+                $nif = $_SESSION['nif'];
+                $estatCivil = $_SESSION['estat-civil'];
+                $sexe = $_SESSION['sexe'];
+                $username = $_SESSION['username'];
+    
+                return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => true, 'errorUsuariIncorrecte' => true, 'actualitzacioCorrecte' => false]);    
+            }
+        }
+
+        // Es prepara una variable amb les dades recollides en un diccionari
+        $json = [
+            'nom' => $nom,
+            'cognoms' => $cognoms,
+            'nif' => \strtoupper($nif),
+            'estat-civil' => $estatCivil,
+            'sexe' => $sexe,
+            'username' => $username,
+            'password' => $contrasenya
+        ];
+        
+        // S'intenta crear el fitxer json amb les dades de l'usuari. Si ja existeix peta
+        if (!$this->crearFitxer($username, true, $json)) {
+
+            $nom = $_SESSION['nom'];
+            $cognoms = $_SESSION['cognoms'];
+            $nif = $_SESSION['nif'];
+            $estatCivil = $_SESSION['estat-civil'];
+            $sexe = $_SESSION['sexe'];
+            $username = $_SESSION['username'];
+
+            return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => true, 'errorUsuariIncorrecte' => true, 'actualitzacioCorrecte' => false]);    
+        }
+
+        // Es comprova que es poden carregar les dades del fitxer, i es carreguen a les variables de la sessió
+        if (!$this->carregarDadesFitxer($username, $contrasenya)) {
+
+            $nom = $_SESSION['nom'];
+            $cognoms = $_SESSION['cognoms'];
+            $nif = $_SESSION['nif'];
+            $estatCivil = $_SESSION['estat-civil'];
+            $sexe = $_SESSION['sexe'];
+            $username = $_SESSION['username'];
+
+            return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => true, 'errorUsuariIncorrecte' => true, 'actualitzacioCorrecte' => false]);    
+        }
+
+        // Comprova si hi ha alguna sessió iniciada, sino, la inicia
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
+        }
+
+        // Si tot ha funcionat correctament, la variable de sessió 'login' es possa a true
+        $_SESSION['login'] = true;
+
+        // Es carreguen les dades de la sessió a les variables i es mostren en la pàgina amb les dades de l'usuari
+        $nom = $_SESSION['nom'];
+        $cognoms = $_SESSION['cognoms'];
+        $nif = $_SESSION['nif'];
+        $estatCivil = $_SESSION['estat-civil'];
+        $sexe = $_SESSION['sexe'];
+        $username = $_SESSION['username'];
+
+        return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => false, 'errorUsuariIncorrecte' => false, 'actualitzacioCorrecte' => true]);    
+    }
+
+    public function eliminarUsuari() {
+        
+        // Comprova si hi ha alguna sessió iniciada, sino, la inicia
+        if (\session_status() !== PHP_SESSION_ACTIVE) {
+            \session_start();
+        }
+
+        // Comprova que la variable username existeix, per evitar que algú entri directament a aquesta url
+        if (!isset($_SESSION['username'])) {
+            return $this->logout;
+        }
+
+        // Prova a eliminar el fitxer. Si hi ha algun problema mostra la pantalla amb l'error
+        if (!$this->eliminarFitxer($_SESSION['username'])) {
+            return \view('userdata', ['nom' => $nom, 'cognoms' => $cognoms, 'nif' => $nif, 'estatCivil' => $estatCivil, 'sexe' => $sexe, 'username' => $username, 'errorDadesIncorrectes' => false, 'errorUsuariIncorrecte' => true, 'actualitzacioCorrecte' => false]);    
+        }
+
+        // Si tot ha anat bé, tanca la sessió
+        return $this->logout();
     }
 
     // Tanca la sessió, eliminant totes les variables amb dades personals
@@ -228,6 +391,44 @@ class Controlador extends Controller
         return $correcte;
     }
 
+    // S'encarrega de crear un fitxer amb les dades del json
+    private function crearFitxer(String $username, bool $sobreescriure, array $json) {
+        
+        // Es comprova si es vol poder sobreescriure el fitxer o no
+        if ($sobreescriure) {
+
+            // S'intenta crear el fitxer json amb les dades de l'usuari. Si no existeix peta
+            try {
+                if (!Storage::disk('local')->exists("$username.json")) {
+                    throw new \Exception("No existeix el fitxer");
+                }
+    
+                Storage::put("$username.json", \json_encode($json));
+            }
+            catch (\Exception $e) {
+                return false;
+            }
+
+            return true;
+        }
+        else {
+
+            // S'intenta crear el fitxer json amb les dades de l'usuari. Si ja existeix peta
+            try {
+                if (Storage::disk('local')->exists("$username.json")) {
+                    throw new \Exception("Ja existeix l'usuari");
+                }
+
+                Storage::put("$username.json", \json_encode($json));
+            }
+            catch (\Exception $e) {
+                return false;
+            }
+            
+            return true;
+        }
+    }
+
     private function carregarDadesFitxer(String $username, String $password) {
         $fitxer;
 
@@ -268,6 +469,58 @@ class Controlador extends Controller
         $_SESSION['sexe'] = $json['sexe'];
         $_SESSION['username'] = $json['username'];
         $_SESSION['password'] = $json['password'];
+
+        return true;
+    }
+
+    // Permet canviar el nom del fitxer. Retorna un boolean per saber si ho ha pogut fer o no
+    private function canviarNomFitxer(String $nomOriginal, String $nomActualitzat) {
+
+        // Comprova si el fitxer existeix
+        try {
+            if (!Storage::disk('local')->exists("$nomOriginal.json")) {
+                throw new \Exception("No existeix el fitxer");
+            }
+        }
+        catch (\Exception $e) {
+            return false;
+        }
+
+        // Comprova que el fitxer que no existeix un fitxer amb el mateix nom amb el que volem actualitzar l'username
+        try {
+            if (Storage::disk('local')->exists("$nomActualitzat.json")) {
+                throw new \Exception("Ja existeix el fitxer");
+            }
+        }
+        catch (\Exception $e) {
+            return false;
+        }
+
+        // Canvia el nom del fitxer
+        try {
+            Storage::move("$nomOriginal.json", "$nomActualitzat.json");
+        }
+        catch (\Exception $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // S'encarrega d'eliminar el JSON seleccionat
+    private function eliminarFitxer(String $username) {
+
+        // Comprova si el fitxer existeix i l'intenta eliminar
+        try {
+            if (!Storage::disk('local')->exists("$username.json")) {
+                throw new \Exception("No existeix el fitxer");
+            }
+
+            Storage::delete("$username.json");
+        }
+        catch (\Exception $e) {
+            return false;
+        }
 
         return true;
     }

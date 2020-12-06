@@ -24,4 +24,8 @@ Route::post('/login-user', [Controlador::class, 'loginUser']);
 
 Route::post('/signup-user', [Controlador::class, 'signUpUser']);
 
+Route::post('/update-userdata', [Controlador::class, 'actualitzarDades']);
+
+Route::get('/del-user', [Controlador::class, 'eliminarUsuari']);
+
 Route::get('/logout', [Controlador::class, 'logout']);
