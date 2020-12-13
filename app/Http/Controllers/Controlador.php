@@ -370,20 +370,15 @@ class Controlador extends Controller
         $correcte = false;
         $lletresNIF = "TRWAGMYFPDXBNJZSQVHLCKET";
 
-        if (\strlen($nif) == 9) {
-            $numerosNIF = substr($nif, 0, 8);
-            $lletraNIF = substr(\strtoupper($nif), 8, 9);
+        $lletra = substr($nif, -1);
+        $numeros = substr($nif, 0, -1);
+        $valido;
 
-            if (is_numeric($numerosNIF)) {
-                $numerosNIF = \intval($numerosNIF);
-                $posicioLletra = $numerosNIF % 23;
-                $lletraValida = substr($lletresNIF, $posicioLletra);
-
-                $correcte = true;
-                if ($lletraValida == $lletraNIF) {
-                    $correcte = true;
-                }
-            }
+        if (substr($lletresNIF, $numeros%23, 1) == $lletra && strlen($lletra) == 1 && strlen ($numeros) == 8 ) {
+            $correcte=true;
+        }
+        else {
+            $correcte=false;
         }
 
         return $correcte;
