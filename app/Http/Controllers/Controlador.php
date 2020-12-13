@@ -158,7 +158,7 @@ class Controlador extends Controller
         // Si tot ha funcionat correctament, la variable de sessió 'login' es possa a true
         $_SESSION['login'] = true;
 
-        return $this->landingPage();
+        return \redirect('/');
     }
 
     // Carrega la pàgina que mostra les dades de l'usuari
@@ -170,8 +170,7 @@ class Controlador extends Controller
 
         // Si el login no es troba a true o no existeix, esborra les dades (per si de cas), i retorna la pàgina principal
         if (!isset($_SESSION['login']) || !$_SESSION['login']) {
-            $this->logout();
-            return $this->landingPage();
+            return $this->logout();
         }
 
         // Recupera totes les dades de la sessió i les envia al front
@@ -194,8 +193,7 @@ class Controlador extends Controller
 
         // Si el login no es troba a true o no existeix, esborra les dades (per si de cas), i retorna la pàgina principal
         if (!isset($_SESSION['login']) || !$_SESSION['login']) {
-            $this->logout();
-            return $this->landingPage();
+            return $this->logout();
         }
 
         $nom = $request['name'];
@@ -364,7 +362,7 @@ class Controlador extends Controller
         $_SESSION['username'] = null;
         $_SESSION['password'] = null;
 
-        return $this->landingPage();
+        return \redirect('/');
     }
 
     // Comprova que el nif es correcte
